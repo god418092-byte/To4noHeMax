@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Neon Chat — Мессенджер</title>
+<style>
+    body {
+        font-family: "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #1a1a2e, #0a0a0f);
+        color: #fff;
+        margin: 0;
+        height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: flex-start;
+    }
+
+    h2 {
+        color: #ff00ff;
+        text-shadow: 0 0 10px #ff00ff;
+        margin: 10px 0;
+        font-size: 1.4em;
+    }
+
+    /* Верхняя панель */
+    #topbar {
+        width: 100%;
+        background: rgba(255, 255, 255, 0.05);
+        padding: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        box-shadow: 0 0 20px rgba(255, 0, 255, 0.2);
+        backdrop-filter: blur(10px);
+        position: fixed;
+        top: 0;
+        z-index: 10;
+    }
+
+    #topbar h1 {
+        margin: 0;
+        font-size: 1.3em;
+        color: #ff66ff;
+    }
+
+    #profileBtn {
+        background: linear-gradient(90deg, #ff00ff, #7700ff);
+        border: none;
+        padding: 10px 18px;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 0.95em;
+        box-shadow: 0 0 10px #ff00ff;
+    }
+
+    #profileBtn:hover {
+        box-shadow: 0 0 20px #ff00ff;
+        transform: scale(1.05);
+    }
+
+    /* Основной чат */
+    #chatArea {
+        width: 90%;
+        max-width: 450px;
+        margin-top: 80px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    #messages {
+        flex: 1;
+        overflow-y: auto;
+        border-radius: 20px;
+        padding: 20px;
+        background: rgba(255, 255, 255, 0.07);
+        box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        font-size: 1.1em;
+    }
+
+    .message {
+        margin-bottom: 12px;
+        padding: 10px;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.1);
+        animation: fadeIn 0.3s ease-in-out;
+        display: flex;
+        align-items: center;
+        word-wrap: break-word;
+    }
+
+    .message img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        margin-right: 10px;
+        border: 2px solid #ff00ff;
+    }
+
+    .message b {
+        color: #ff66ff;
+        margin-right: 5px;
+    }
+
+    .photo-message img {
+        max-width: 100%;
+        border-radius: 10px;
+        margin-top: 5px;
+        box-shadow: 0 0 10px #ff00ff;
+    }
+
+    #messageInput {
+        width: 55%;
+        padding: 12px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        backdrop-filter: blur(10px);
+        font-size: 1em;
+    }
+
+    button.sendBtn, button.iconBtn {
+        background: linear-gradient(90deg, #ff00ff, #7700ff);
+        border: none;
+        padding: 12px;
+        border-radius: 10px;
+        color: white;
+        cursor: pointer;
+        transition: 0.3s;
+        font-size: 1em;
+        box-shadow: 0 0 10px #ff00ff;
+        margin-left: 5px;
+    }
+
+    button.sendBtn:hover, button.iconBtn:hover {
+        box-shadow: 0 0 25px #ff00ff;
+        transform: scale(1.05);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Профиль */
+    #profile {
+        display: none;
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 20px;
+        padding: 30px;
+        width: 90%;
+        max-width: 450px;
+        margin-top: 100px;
+        text-align: center;
+        box-shadow: 0 0 25px rgba(255, 0, 255, 0.3);
+        backdrop-filter: blur(10px);
+    }
+
+    #avatar {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 3px solid #ff00ff;
+        box-shadow: 0 0 20px #ff00ff;
+        margin-bottom: 15px;
+    }
+
+    input[type="text"], input[type="file"] {
+        width: 80%;
+        padding: 10px;
+        border-radius: 10px;
+        border: none;
+        outline: none;
+        background: rgba(255, 255, 255, 0.1);
+        color: white;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    #backBtn {
+        margin-top: 20px;
+        background: rgba(255, 0, 255, 0.2);
+        border: 1px solid #ff00ff;
+    }
+</style>
+</head>
+<body>
+
+    <div id="topbar">
+        <h1>💬 Neon Chat</h1>
+        <button id="profileBtn" onclick="toggleProfile()">Профиль</button>
+    </div>
+
+    <!-- Основная часть -->
+    <div id="chatArea">
+        <div id="messages"></div>
+        <div style="display: flex; justify-content: center; align-items: center; margin: 20px 0;">
+            <input type="text" id="messageInput" placeholder="Введите сообщение...">
+            <input type="file" id="photoInput" accept="image/*" style="display:none;" onchange="sendPhoto(this)">
+            <button class="iconBtn" onclick="document.getElementById('photoInput').click()">📷</button>
+            <button class="iconBtn" id="voiceBtn" onclick="toggleVoice()">🎤</button>
+            <button class="sendBtn" onclick="sendMessage()">➡️</button>
+        </div>
+    </div>
+
+    <!-- Профиль -->
+    <div id="profile">
+        <img id="avatar" src="" alt="Аватар">
+        <h2>👤 Профиль</h2>
+        <p>Никнейм: <span id="nickname">Пользователь</span></p>
+        <input type="text" id="newNickname" placeholder="Новый никнейм"><br>
+        <input type="file" id="avatarInput" accept="image/*"><br><br>
+        <button class="sendBtn" onclick="updateProfile()">Сохранить</button>
+        <button id="backBtn" class="sendBtn" onclick="toggleProfile()">Назад</button>
+    </div>
+
+    <script>
+        // Загружаем сохранённые данные
+        window.onload = () => {
+            const savedNick = localStorage.getItem("nickname");
+            const savedAvatar = localStorage.getItem("avatar");
+            if (savedNick) document.getElementById("nickname").textContent = savedNick;
+            if (savedAvatar) document.getElementById("avatar").src = savedAvatar;
+        };
+
+        // Переключение между чатом и профилем
+        function toggleProfile() {
+            const chat = document.getElementById("chatArea");
+            const profile = document.getElementById("profile");
+            const btn = document.getElementById("profileBtn");
+            if (profile.style.display === "none" || profile.style.display === "") {
+                chat.style.display = "none";
+                profile.style.display = "block";
+                btn.textContent = "Чат";
+            } else {
+                profile.style.display = "none";
+                chat.style.display = "flex";
+                btn.textContent = "Профиль";
+            }
+        }
+
+        // Смена профиля
+        function updateProfile() {
+            const newNick = document.getElementById("newNickname").value.trim();
+            const file = document.getElementById("avatarInput").files[0];
+
+            if (newNick) {
+                document.getElementById("nickname").textContent = newNick;
+                localStorage.setItem("nickname", newNick);
+            }
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const avatarData = reader.result;
+                    document.getElementById("avatar").src = avatarData;
+                    localStorage.setItem("avatar", avatarData);
+                };
+                reader.readAsDataURL(file);
+            }
+
+            document.getElementById("newNickname").value = "";
+            document.getElementById("avatarInput").value = "";
+        }
+
+        // Отправка текста
+        function sendMessage() {
+            const input = document.getElementById("messageInput");
+            const text = input.value.trim();
+            if (!text) return;
+            addMessage(text);
+            input.value = "";
+        }
+
+        // Добавление сообщения в чат
+        function addMessage(content, isPhoto = false, isVoice = false) {
+            const nickname = localStorage.getItem("nickname") || "Пользователь";
+            const avatar = localStorage.getItem("avatar") || "";
+            const msg = document.createElement("div");
+            msg.className = "message";
+
+            let inner = `<img src="${avatar}" alt="avatar"><div><b>${nickname}:</b>`;
+            if (isPhoto) inner += `<div class="photo-message"><img src="${content}" alt="Фото"></div>`;
+            else if (isVoice) inner += `<audio controls src="${content}"></audio>`;
+            else inner += ` ${content}`;
+            inner += `</div>`;
+
+            msg.innerHTML = inner;
+            document.getElementById("messages").appendChild(msg);
+            document.getElementById("messages").scrollTop = document.getElementById("messages").scrollHeight;
+        }
+
+        // Отправка фото
+        function sendPhoto(input) {
+            const file = input.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = () => addMessage(reader.result, true);
+            reader.readAsDataURL(file);
+        }
+
+        // Голосовые сообщения
+        let mediaRecorder;
+        let audioChunks = [];
+        let isRecording = false;
+
+        async function toggleVoice() {
+            const btn = document.getElementById("voiceBtn");
+            if (!isRecording) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+                audioChunks = [];
+                mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+                mediaRecorder.onstop = () => {
+                    const blob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+                    const audioURL = URL.createObjectURL(blob);
+                    addMessage(audioURL, false, true);
+                };
+                mediaRecorder.start();
+                btn.textContent = "🛑";
+                isRecording = true;
+            } else {
+                mediaRecorder.stop();
+                btn.textContent = "🎤";
+                isRecording = false;
+            }
+        }
+    </script>
+
+</body>
+</html>
